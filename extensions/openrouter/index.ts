@@ -122,6 +122,16 @@ function isXaiOpenRouterModel(modelId: string): boolean {
   return modelId.trim().toLowerCase().startsWith("x-ai/");
 }
 
+/**
+ * Returns true if the pattern is or contains an x-ai model reference, including wildcards
+ * such as `x-ai/*`. Note: provider-agnostic wildcards like `*\/grok-*` cannot be detected
+ * without a model registry lookup and are not handled here.
+ */
+function patternMightBeProxyReasoningUnsupported(pattern: string): boolean {
+  const lower = pattern.trim().toLowerCase();
+  return lower.startsWith("x-ai/") || lower.includes("/x-ai/");
+}
+
 export default definePluginEntry({
   id: "openrouter",
   name: "OpenRouter Provider",
@@ -204,10 +214,18 @@ export default definePluginEntry({
         }
         // Skip reasoning injection if the model ID itself is unsupported, or if the
         // autoRouter allowlist contains x-ai models (proxy reasoning unsupported via OpenRouter).
+        const allowlistBlocksReasoning = autoRouterAllowedModels.some(
+          patternMightBeProxyReasoningUnsupported,
+        );
+        if (allowlistBlocksReasoning && ctx.thinkingLevel && ctx.thinkingLevel !== "off") {
+          api.logger.warn?.(
+            `openrouter: reasoning injection suppressed because autoRouter.allowedModels contains x-ai models that do not support proxy reasoning (thinkingLevel=${ctx.thinkingLevel}). Remove x-ai models from the allowlist to enable reasoning.`,
+          );
+        }
         const skipReasoningInjection =
           ctx.modelId === "auto" ||
           isProxyReasoningUnsupported(ctx.modelId) ||
-          autoRouterAllowedModels.some(isProxyReasoningUnsupported);
+          allowlistBlocksReasoning;
         const openRouterThinkingLevel = skipReasoningInjection ? undefined : ctx.thinkingLevel;
         streamFn = createOpenRouterWrapper(streamFn, openRouterThinkingLevel);
         streamFn = createOpenRouterSystemCacheWrapper(streamFn);
