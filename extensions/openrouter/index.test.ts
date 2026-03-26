@@ -1,6 +1,6 @@
+import type { StreamFn } from "@mariozechner/pi-agent-core";
 import OpenAI from "openai";
 import { describe, expect, it } from "vitest";
-import type { StreamFn } from "@mariozechner/pi-agent-core";
 import {
   registerProviderPlugin,
   requireRegisteredProvider,
