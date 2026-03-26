@@ -601,7 +601,10 @@ describe("applyExtraParamsToAgent", () => {
 
     expect(payloads).toHaveLength(1);
     expect(payloads[0]?.plugins).toEqual([
-      { id: "auto-router", allowed_models: ["anthropic/claude-haiku-4-5", "google/gemini-2.5-flash"] },
+      {
+        id: "auto-router",
+        allowed_models: ["anthropic/claude-haiku-4-5", "google/gemini-2.5-flash"],
+      },
     ]);
   });
 
