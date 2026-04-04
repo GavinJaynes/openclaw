@@ -175,7 +175,7 @@ export default definePluginEntry({
         ...ctx,
         streamFn,
         thinkingLevel: allowlistBlocksReasoning ? undefined : ctx.thinkingLevel,
-      });
+      }) ?? undefined;
     }
 
     function isOpenRouterCacheTtlModel(modelId: string): boolean {
